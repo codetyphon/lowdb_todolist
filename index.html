@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>todolist</title>
+<script src="https://unpkg.com/lodash@4/lodash.min.js"></script>
+<script src="https://unpkg.com/lowdb@0.17/dist/low.min.js"></script>
+<script src="https://unpkg.com/lowdb@0.17/dist/LocalStorage.min.js"></script>
+<!-- Load polyfills to support older browsers -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+    
+<!-- Load Vue followed by BootstrapVue -->
+<script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+<script src="https://unpkg.com/vue-markdown@2.2.4/dist/vue-markdown.js"></script>
+
+<!-- Load required Bootstrap and BootstrapVue CSS -->
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+<style>
+    #app{
+        height: 100%;
+    }
+    .jumbotron{
+        margin:0;
+        padding:20px;
+    }
+</style>
+</head>
+<body>
+<div id="app">
+    <b-jumbotron header="todolist" lead="一个使用lowdb的例子">
+        <b-card no-body>
+        <b-tabs card v-model="tabIndex">
+            <b-tab title="全部">
+                <b-form-group>
+                    <b-list-group>
+                        <b-list-group-item class="d-flex justify-content-between align-items-center" v-for="(item,index) in list" :key="list.id">
+                            <div v-if="!item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="mb-1">
+                                  <b-form-checkbox
+                                  :id="item.id"
+                                  v-model="item.finish"
+                                >
+                                <del v-if="item.finish" >{{ item.title }}</del>
+                                <span v-if="!item.finish">{{ item.title }}</span>
+                                </b-form-checkbox>
+                              </h5>
+                              <small class="text-muted">
+                                <b-button pill variant="success" size="sm" @click="item.edit=true">编辑</b-button>
+                                <b-button pill variant="danger" size="sm" @click="list.splice(index,1)">删除</b-button>
+                              </small>
+                            </div>
+
+                            <div v-if="item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="col-lg no-padding">
+                                <b-input-group>
+                                    <b-form-input v-model="item.title"></b-form-input>
+                                    <b-input-group-append>
+                                        <b-button variant="primary" @click="item.edit=false">保存</b-button>
+                                    </b-input-group-append>
+                                </b-input-group>
+                              </h5>
+                            </div>
+                        </b-list-group-item>
+                    </b-list-group>
+                </b-form-group>
+            </b-tab>
+            <b-tab title="进行中">
+                <b-form-group>
+                    <b-list-group>
+                        <b-list-group-item class="d-flex justify-content-between align-items-center" v-for="(item,index) in list" :key="list.id" v-if="!item.finish">
+                            <div v-if="!item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="mb-1">
+                                  <b-form-checkbox
+                                  :id="item.id"
+                                  v-model="item.finish"
+                                >
+                                <del v-if="item.finish" >{{ item.title }}</del>
+                                <span v-if="!item.finish">{{ item.title }}</span>
+                                </b-form-checkbox>
+                              </h5>
+                              <small class="text-muted">
+                                <b-button pill variant="success" size="sm" @click="item.edit=true">编辑</b-button>
+                                <b-button pill variant="danger" size="sm" @click="list.splice(index,1)">删除</b-button>
+                              </small>
+                            </div>
+
+                            <div v-if="item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="col-lg no-padding">
+                                <b-input-group>
+                                    <b-form-input v-model="item.title"></b-form-input>
+                                    <b-input-group-append>
+                                        <b-button variant="primary" @click="item.edit=false">保存</b-button>
+                                    </b-input-group-append>
+                                </b-input-group>
+                              </h5>
+                            </div>
+                        </b-list-group-item>
+                    </b-list-group>
+                </b-form-group>
+            </b-tab>
+            <b-tab title="已完成">
+                <b-form-group>
+                    <b-list-group>
+                        <b-list-group-item class="d-flex justify-content-between align-items-center" v-for="(item,index) in list" :key="list.id" v-if="item.finish">
+                            <div v-if="!item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="mb-1">
+                                  <b-form-checkbox
+                                  :id="item.id"
+                                  v-model="item.finish"
+                                >
+                                <del v-if="item.finish" >{{ item.title }}</del>
+                                <span v-if="!item.finish">{{ item.title }}</span>
+                                </b-form-checkbox>
+                              </h5>
+                              <small class="text-muted">
+                                <b-button pill variant="success" size="sm" @click="item.edit=true">编辑</b-button>
+                                <b-button pill variant="danger" size="sm" @click="list.splice(index,1)">删除</b-button>
+                              </small>
+                            </div>
+
+                            <div v-if="item.edit" class="d-flex w-100 justify-content-between">
+                              <h5 class="col-lg no-padding">
+                                <b-input-group>
+                                    <b-form-input v-model="item.title"></b-form-input>
+                                    <b-input-group-append>
+                                        <b-button variant="primary" @click="item.edit=false">保存</b-button>
+                                    </b-input-group-append>
+                                </b-input-group>
+                              </h5>
+                            </div>
+                        </b-list-group-item>
+                    </b-list-group>
+                </b-form-group>
+            </b-tab>
+            <b-tab title="说明">
+                <vue-markdown>### 这是一个关于lowdb的演示。</vue-markdown>
+                <vue-markdown>>[lowdb](https://github.com/typicode/lowdb)是一个很轻巧的数据库引擎，它也支持本地存储。</vue-markdown>
+                <vue-markdown>作者：[codetyphon](http://github.com/codetyphon)</vue-markdown>
+                <vue-markdown>### 关键代码</vue-markdown>
+                <vue-markdown>1、读取本地存储</vue-markdown>
+                <vue-markdown>```let todo = db.get('todo').value()```</vue-markdown>
+                <vue-markdown>2、写入本地存储</vue-markdown>
+                <vue-markdown>```db.set('todo', this.list).write()```</vue-markdown>
+                <vue-markdown>3、数组内容深监控</vue-markdown>
+                <vue-markdown>```watch:{```</vue-markdown>
+                <vue-markdown>```list:{```</vue-markdown>
+                <vue-markdown>```    handler:function(newValue,oldValue){```</vue-markdown>
+                <vue-markdown>```    this.save()```</vue-markdown>
+                <vue-markdown>```  },```</vue-markdown>
+                <vue-markdown>```deep:true,//数组内容发生变化也监控```</vue-markdown>
+                <vue-markdown>```}```</vue-markdown>
+            </b-tab>
+        </b-tabs>
+        
+        
+        </b-card>
+        <br>
+        <b-form-group>
+            <b-input-group>
+                <b-form-input placeholder="输入你要做的事情" v-model="title"></b-form-input>
+                <b-input-group-append>
+                    <b-button variant="primary" @click="add">添加</b-button>
+                </b-input-group-append>
+            </b-input-group>
+        </b-form-group>
+      </b-jumbotron>
+</div>
+<script>
+var adapter = new LocalStorage('db')
+var db = low(adapter)
+Vue.use(VueMarkdown);
+new Vue({
+  el: '#app',
+  data(){
+    return{
+        list:[],
+        title:'',
+        id:0,
+        tabIndex:0
+    }
+  },created(){
+      this.load()
+  },methods:{
+      save(){
+          //保存
+          db.set('todo', this.list).write()
+      },
+      load(){
+          //获得数据
+          let todo = db.get('todo')
+              .value()
+          if(todo!=undefined){
+            this.list=todo
+            //自增的id
+            this.id=todo.length
+          }
+          console.log(todo)
+      },
+      add(){
+          this.id+=1;
+          console.log(this.id)
+          this.list.push(
+            {
+                id:this.id,
+                title:this.title,
+                edit:false,
+                finish:false
+            }
+          )
+          this.title=""
+          this.tabIndex=0
+      }
+  },watch:{
+    list:{
+        handler:function(newValue,oldValue){
+            console.log(newValue)
+            this.save()
+        },
+        deep:true,//数组内容发生变化也监控
+    }
+  }
+})
+</script>
+</body>
+</html>
